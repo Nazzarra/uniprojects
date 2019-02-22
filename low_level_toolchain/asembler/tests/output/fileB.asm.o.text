@@ -1,0 +1,35 @@
+
+# Section .DATA
+00 00 00 00 00 00 
+# Section .TEXT
+F5 1E 02 00 C1 1E 04 00 C1 1F FE FF E9 E0 E5 20 
+E5 40 F5 1E 08 00 F5 3E 06 00 D1 00 00 00 01 E0 
+10 00 CD 00 0A 00 C1 20 02 00 D1 00 00 00 41 E0 
+F0 FF F7 28 00 00 C5 20 02 00 F5 1E 08 00 D1 00 
+00 00 01 E0 24 00 F5 48 CD 00 0A 00 C9 00 0A 00 
+C5 48 CD 00 0A 00 C1 40 30 00 F7 2A 00 00 C5 20 
+02 00 D1 00 00 00 41 E0 DC FF E9 40 E9 20 E9 E0 
+E5 20 F5 1E 04 00 F5 38 00 00 D1 20 00 00 01 E0 
+14 00 F6 09 FE FF C1 00 02 00 F5 38 00 00 D1 20 
+00 00 41 E0 EC FF E9 20 E9 E0 
+# Relocation table for section .TEXT
+#ADDR TYPE SYM
+ 000A  REL   1
+# Relocation table for section .DATA
+#ADDR TYPE SYM
+ 0002  ABS   6
+ 0004  ABS   5
+# Symbol table
+  0.       .UND     0     UND L     0 SECTION
+  1.      .DATA  1000    DATA L     6 SECTION
+  2. offset_factor     0    DATA L     0 SYM
+  3.      .TEXT  1006    TEXT L   154 SECTION
+  4.   add_nums     0    TEXT G     0 SYM
+  5. convert_to_decimal    14    TEXT G     0 SYM
+  6.      print   112    TEXT G     0 SYM
+  7.       loop    34    TEXT L     0 SYM
+  8.       skip    50    TEXT L     0 SYM
+  9. digit_loop    70    TEXT L     0 SYM
+ 10.        end   106    TEXT L     0 SYM
+ 11. print_loop   130    TEXT L     0 SYM
+ 12.  print_end   150    TEXT L     0 SYM

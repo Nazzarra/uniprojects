@@ -1,0 +1,8 @@
+
+# Section .DATA
+98 00 11 00 
+# Symbol table
+  0.       .UND     0     UND L     0 SECTION
+  1.      .DATA   500    DATA L     4 SECTION
+  2.   firstNum     0    DATA G     0 SYM
+  3.  secondNum     2    DATA G     0 SYM
