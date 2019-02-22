@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+
+<project
+        name="PPProject"
+        basedir=""
+        default="buildAll">
+
+    <uptodate property="parserGen.notRequired" targetfile="src/rs/ac/bg/etf/pp1/MJParser.java" srcfile="spec/mjparser.cup"/>
+    <uptodate property="lexerGen.notRequired" targetfile="src/rs/ac/bg/etf/pp1/Yylex.java" srcfile="spec/mjlexer.flex"/>
+
+    <target name="lexerGen" unless="lexerGen.notRequired">
+        <java jar="lib/JFlex.jar" fork="true">
+            <arg value="-d"/>
+            <arg value="src/rs/ac/bg/etf/pp1"/>
+            <arg value="spec/mjlexer.flex"/>
+        </java>
+    </target>
+
+    <target name="parserGen" depends="lexerGen" unless="parserGen.notRequired">
+        <delete>
+            <fileset dir="src/rs/ac/bg/etf/pp1/ast">
+            </fileset>
+        </delete>
+        <java jar="lib/cup_v10k.jar" fork="true">
+            <arg value="-destdir"/>
+            <arg value="src/rs/ac/bg/etf/pp1"/>
+            <arg value="-ast"/>
+            <arg value="src.rs.ac.bg.etf.pp1.ast"/>
+            <arg value="-parser"/>
+            <arg value="MJParser"/>
+            <arg value="-dump_states"/>
+            <arg value="-buildtree"/>
+            <arg value="spec/mjparser.cup"/>
+        </java>
+    </target>
+
+    <target name="parserHelp">
+        <java jar="lib/cup_v10k.jar" fork="true">
+            <arg value="-h"/>
+        </java>
+    </target>
+
+    <target name="repackage" depends="parserGen" unless="parserGen.notRequired">
+        <replace dir="src" value="rs.ac.bg.etf.pp1.ast" token="src.rs.ac.bg.etf.pp1.ast" summary="true"/>
+    </target>
+
+    <target name="clean">
+        <delete>
+            <fileset dir="src/rs/ac/bg/etf/pp1/">
+                <include name="Yylex.java"/>
+            </fileset>
+            <fileset dir="build">
+            </fileset>
+            <fileset dir="spec">
+                <exclude name="mjlexer.flex"/>
+                <exclude name="mjparser.cup"/>
+            </fileset>
+        </delete>
+    </target>
+
+    <target name="buildAll" depends="repackage">
+        <javac destdir="build" srcdir="src/rs/ac/bg/etf/pp1/" includeantruntime="false">
+            <classpath>
+                <fileset dir="lib/">
+                </fileset>
+            </classpath>
+        </javac>
+    </target>
+
+    <target name="buildAllTest" depends="buildAll">
+        <javac destdir="build" srcdir="test/rs/ac/bg/etf/pp1/" includeantruntime="false">
+            <classpath>
+                <fileset dir="lib/">
+                </fileset>
+            </classpath>
+        </javac>
+    </target>
+
+    <target name="lexerTest" >
+        <java classname="rs.ac.bg.etf.pp1.LexerTest" classpath="build/" fork="true">
+            <classpath>
+                <fileset dir="lib/">
+                </fileset>
+            </classpath>
+            <arg value="testres/code.txt"/>
+        </java>
+    </target>
+
+    <target name="parserTest">
+        <java classname="rs.ac.bg.etf.pp1.Compiler" classpath="build/" fork="true">
+            <classpath>
+                <fileset dir="lib/">
+                </fileset>
+            </classpath>
+            <arg value="testres/parsertest.txt"/>
+            <arg value="testres/parsertest.obj"/>
+        </java>
+    </target>
+
+    <target name="disasm" depends="parserTest">
+        <java classname="rs.etf.pp1.mj.runtime.disasm">
+            <arg value="testres/parsertest.obj"/>
+            <classpath>
+                <pathelement location="lib/mj-runtime-1.1.jar"/>
+            </classpath>
+        </java>
+    </target>
+
+    <target name="runObj" depends="disasm" >
+        <java classname="rs.etf.pp1.mj.runtime.Run">
+            <arg value="testres/parsertest.obj"/>
+            <classpath>
+                <pathelement location="lib/mj-runtime-1.1.jar"/>
+            </classpath>
+            <redirector input="testres/ptest.in"/>
+        </java>
+    </target>
+
+</project>

@@ -1,0 +1,277 @@
+program Programcic123
+
+// klasa za pakovanje nizova
+// posto ne mozemo da imamo niz kao povratnu vrednost (po gramatici)
+class PackedCharArray
+{
+	char array[];
+}
+
+// gomila interfejsa, za testiranje visestruke implementacije
+interface IUtil
+{
+	void printstr(char str[]);
+}
+interface IBuilder
+{
+	PackedCharArray buildIma();	
+}
+interface IBuilder2
+{
+	PackedCharArray buildNema();	
+}
+
+// glob. promenljiva
+IBuilder builder1;
+
+
+class Util extends implements IBuilder, IBuilder2
+{
+	{
+		// kreira string "Nema" i vraca ga
+		PackedCharArray buildIma()
+		PackedCharArray pca;
+		char chr[];
+		{
+			chr=new char[3];
+			chr[0]='I';
+			chr[1]='m';
+			chr[2]='a';
+			pca=new PackedCharArray;
+			pca.array=chr;
+			return pca;
+		}
+		// vraca null, bice nadjacana dole
+		PackedCharArray buildNema()
+		{
+			return null;
+		}
+	}
+}
+IBuilder2 builder2;
+class Util2 extends Util implements IUtil
+{
+	{
+		// ispisuje string
+		void printstr(char str[])
+		int i;
+		{
+			for(i=0;i<len(str);i++) print(str[i]);
+		}
+		
+		// nadjacana odozgo, vraca string "Ima"
+		PackedCharArray buildNema()
+		PackedCharArray pca;
+		char chr[];
+		{
+			chr=new char[4];
+			chr[0]='N';
+			chr[1]='e';
+			chr[2]='m';
+			chr[3]='a';
+			pca=new PackedCharArray;
+			pca.array=chr;
+			return pca;
+		}
+	}
+}
+IUtil util;
+
+
+// cvor stabla
+class Node
+{
+	Node right, left;
+	int val;
+	{
+		// rekurzivni insert
+		void insrt(int v)
+		{
+			if(v>val)
+			{
+				if(right==null)
+				{
+					right=new Node;
+					right.val=v;
+				}
+				else
+				{
+					right.insrt(v);
+				}
+			}
+			else
+			{
+				if(left==null)
+				{
+					left=new Node;
+					left.val=v;
+				}
+				else
+				{
+					left.insrt(v);
+				}
+			}
+		}
+	}
+}
+
+PackedCharArray ima;
+PackedCharArray nema;
+
+enum StringPicker{IMA=42, NEMA=43}
+    
+
+{
+	// ispisuje string zadat enumom
+	void printstr(int x)
+	{
+		if(x==42 && x==StringPicker.IMA) util.printstr(ima.array);
+		if(x==86 || x==StringPicker.NEMA) util.printstr(nema.array);
+	}
+	// ispisuje string zadat enumom	
+	void printstrE(StringPicker e)
+	{
+		if(e>=42 && e<=43) printstr(e);
+	}
+	// pretraga stabla
+	bool find(Node nd, int v)
+	{
+		if(nd!=null && nd.val==v) return true;
+		else if(nd!=null && nd.val<v) return find(nd.right, v);
+		else if(nd!=null && nd.val>v) 
+		{
+			return find(nd.left, v);
+		}
+		else return false;
+	}
+	// vraca pocetnu poruku
+	PackedCharArray getInitialMessage()
+	PackedCharArray pca;
+	char chr[];
+	{
+		chr=new char[80];
+		chr[0]='U';
+		chr[1]='n';
+		chr[2]='e';
+		chr[3]='s';
+		chr[4]='i';
+		chr[5]='t';
+		chr[6]='e';
+		chr[7]=' ';
+		chr[8]='k';
+		chr[9]='o';
+		chr[10]='m';
+		chr[11]='a';
+		chr[12]='n';
+		chr[13]='d';
+		chr[14]='u';
+		chr[15]=':';
+		chr[16]=eol;
+		chr[17]='1';
+		chr[18]=' ';
+		chr[19]='X';
+		chr[20]=' ';
+		chr[21]='(';
+		chr[22]='u';
+		chr[23]='b';
+		chr[24]='a';
+		chr[25]='c';
+		chr[26]='i';
+		chr[27]='v';
+		chr[28]='a';
+		chr[29]='n';
+		chr[30]='j';
+		chr[31]='e';
+		chr[32]=' ';
+		chr[33]='e';
+		chr[34]='l';
+		chr[35]='e';
+		chr[36]='m';
+		chr[37]='e';
+		chr[38]='n';
+		chr[39]='t';
+		chr[40]='a';
+		chr[41]=' ';
+		chr[42]='X';
+		chr[43]=' ';
+		chr[44]='u';
+		chr[45]=' ';
+		chr[46]='s';
+		chr[47]='t';
+		chr[48]='a';
+		chr[49]='b';
+		chr[50]='l';
+		chr[51]='o';
+		chr[52]=')';
+		chr[53]=eol;
+		chr[54]='2';
+		chr[55]=' ';
+		chr[56]='X';
+		chr[57]=' ';
+		chr[58]='p';
+		chr[59]='r';
+		chr[60]='e';
+		chr[61]='t';
+		chr[62]='r';
+		chr[63]='a';
+		chr[64]='g';
+		chr[65]='a';
+		chr[66]=' ';
+		chr[67]='s';
+		chr[68]='t';
+		chr[69]='a';
+		chr[70]='b';
+		chr[71]='l';
+		chr[72]='a';
+		chr[73]=eol;
+		chr[74]='3';
+		chr[75]=' ';
+		chr[76]='K';
+		chr[77]='r';
+		chr[78]='a';
+		chr[79]='j';
+		pca=new PackedCharArray;
+		pca.array=chr;
+		return pca;
+	}
+    void main()
+    PackedCharArray message;
+    Node root;
+    int c, v;
+    {
+    	util=new Util2;
+    	builder1=new Util2;
+    	builder2=new Util2;
+    	message = getInitialMessage();
+    	ima=builder1.buildIma();
+    	nema=builder2.buildNema();
+    	util.printstr(message.array);
+    	root=null;
+    	read(c);
+    	for(;c!=3;)
+    	{
+    		if(c==1)
+    		{
+    			read(v);
+    			if(root==null)
+    			{
+    				root=new Node;
+    				root.val=v;
+    			}
+    			else
+    			{
+    				root.insrt(v);
+    			}
+    		}
+    		else if(c==2)
+    		{
+    			read(v);
+    			if(find(root, v))
+    			{
+    				printstrE(StringPicker.IMA);
+    			}else printstr(StringPicker.NEMA);
+    		}
+    		read(c);
+    	}
+    }
+}

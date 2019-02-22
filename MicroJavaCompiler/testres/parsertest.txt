@@ -1,0 +1,15 @@
+program Jeca
+
+int x;
+
+{
+    void main()
+        int i;
+    {
+        i = 500;
+        for(i = 0; i < 5; i++)
+            print(i);
+
+        return;
+    }
+}

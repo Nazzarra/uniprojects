@@ -1,0 +1,404 @@
+package rs.ac.bg.etf.pp1;
+
+import java_cup.runtime.*;
+import rs.ac.bg.etf.pp1.ast.*;
+import java.util.logging.Logger;
+
+parser code {:
+
+	public boolean errorWhileParsing = false;
+
+	public Symbol errSymbol;
+
+    public void report_fatal_error(String message, Object info) throws java.lang.Exception {
+      done_parsing();
+      report_error(message, cur_token);
+    }
+
+    public void syntax_error(Symbol cur_token) {
+        errorWhileParsing = true;
+        errSymbol = cur_token;
+        //report_error("\nSyntax error", cur_token);
+    }
+
+    public void unrecovered_syntax_error(Symbol cur_token) throws java.lang.Exception {
+        report_fatal_error("Fatal error, parsing cannot continue", cur_token);
+    }
+
+    public void report_error(String message, Object info) {
+    	StringBuilder msg = new StringBuilder(message);
+    	if (info instanceof Symbol)
+            msg.append (" on line ").append(((Symbol)info).left);
+        System.err.println(msg.toString());
+        errorWhileParsing = true;
+    }
+
+    public void report_error_on_curr_token(String message){
+        report_error(message, cur_token);
+    }
+
+    public void report_error_on_err_token(String message){
+        report_error(message, errSymbol);
+    }
+
+:}
+
+scan with {:
+	Symbol s = this.getScanner().next_token();
+	/* if (s != null && s.value != null)
+		log.info(s.toString() + " " + s.value.toString()); */
+	return s;
+:}
+
+terminal OP_LEFT_PAREN, OP_RIGHT_PAREN, PROGRAM, CONST, OP_SEMICOLON, OP_COMMA, OP_ASSIGN, BREAK, CLASS, INTERFACE, ENUM, ELSE, IF, NEW;
+terminal PRINT, READ, RETURN, VOID, FOR, EXTENDS, CONTINUE, OP_PLUS, OP_MINUS, OP_MUL, OP_DIV, OP_MOD, OP_EQUALS, OP_NOT_EQUALS;
+terminal OP_GREATER_THAN, OP_GREATER_EQUAL, OP_LESS_THAN, OP_LESS_EQUAL, OP_AND, OP_OR, OP_INC, OP_DEC, OP_DOT, OP_LEFT_SQUARE;
+terminal OP_RIGHT_SQUARE, OP_LEFT_CURLY, OP_RIGHT_CURLY, IMPLEMENTS;
+terminal String IDENTIFIER;
+terminal Integer NUM_CONST;
+terminal Boolean BOOL_CONST;
+terminal Character CHAR_CONST;
+
+nonterminal Program, ProgramHeaderDeclList, MethodDeclList, MethodDecl, ConstDeclList, ConstDeclMore, ConstDeclCore;
+nonterminal VarDeclList, VarDeclMore, VarDeclChoice;
+nonterminal EnumDecl, EnumDeclCore, EnumDeclMore;
+nonterminal FormalParams, FormalParam;
+nonterminal InterfaceMethodList, InterfaceMethodDecl, InterfaceDecl;
+nonterminal Statement, StatementList, CondStatement;
+nonterminal Assignop, Relop, Addop, Mulop;
+nonterminal ActualParams, ActualParamsChoice;
+nonterminal DesignatorStatement, ForStepPart;
+nonterminal LocalVarDeclList, ClassDecl, ClassExtendsChoice, ClassImplementsChoice, ClassImplementsMultiple;
+nonterminal FormalParamsChoice, MethodType;
+nonterminal ForStartMarker, ForStatementMarker;
+nonterminal ArrayLoadMarker;
+nonterminal MethDeclChoice, ClassDeclHeader;
+nonterminal InterfaceHeader;
+nonterminal InterfaceMethodName;
+
+nonterminal rs.etf.pp1.symboltable.concepts.Obj IfStartMarker;
+nonterminal rs.etf.pp1.symboltable.concepts.Obj VarDeclCore;
+nonterminal rs.etf.pp1.symboltable.concepts.Obj ProgramName;
+nonterminal rs.etf.pp1.symboltable.concepts.Obj MethodName;
+nonterminal rs.etf.pp1.symboltable.concepts.Struct Type;
+nonterminal rs.etf.pp1.symboltable.concepts.Obj EnumTypeDecl;
+nonterminal rs.etf.pp1.symboltable.concepts.Obj DesignatorBase;
+nonterminal rs.etf.pp1.symboltable.concepts.Obj Designator;
+nonterminal rs.etf.pp1.symboltable.concepts.Struct Expr;
+nonterminal rs.etf.pp1.symboltable.concepts.Struct Term;
+nonterminal rs.etf.pp1.symboltable.concepts.Struct Factor;
+nonterminal rs.etf.pp1.symboltable.concepts.Struct Condition;
+nonterminal rs.etf.pp1.symboltable.concepts.Struct CondFact;
+nonterminal rs.etf.pp1.symboltable.concepts.Struct CondTerm;
+nonterminal rs.etf.pp1.symboltable.concepts.Obj IfElseMarker;
+nonterminal rs.ac.bg.etf.pp1.ForCondFixAddr ForCondPart;
+nonterminal rs.ac.bg.etf.pp1.ForCondAddr ForInitPart;
+
+
+precedence left ELSE;
+
+Program ::= (Program) PROGRAM ProgramName:progName ProgramHeaderDeclList OP_LEFT_CURLY MethodDeclList OP_RIGHT_CURLY;
+
+ProgramName ::= (ProgramName) IDENTIFIER:progName;
+
+Type ::= (Type) IDENTIFIER:typeName;
+
+ProgramHeaderDeclList ::= (ProgramHeaderConstDecl) ProgramHeaderDeclList ConstDeclList
+    |
+    (ProgramHeaderVarDecl) ProgramHeaderDeclList VarDeclList
+    |
+    (ProgramHeaderEnumDecl) ProgramHeaderDeclList EnumDecl
+    |
+    (ProgramHeaderInterfaceDecl) ProgramHeaderDeclList InterfaceDecl
+    |
+    (ProgramHeaderClassDecl) ProgramHeaderDeclList ClassDecl
+    |
+    (NoProgramHeaderDecl) /* empty */
+    ;
+
+ConstDeclList ::= (ConstDeclBase) CONST Type ConstDeclCore ConstDeclMore OP_SEMICOLON;
+
+ConstDeclMore ::= (ConstDeclMultiple) ConstDeclMore OP_COMMA ConstDeclCore
+    |
+    (NoConstDecl) /* empty */
+    ;
+
+ConstDeclCore ::= (ConstDeclNum) IDENTIFIER:constIdentifier OP_ASSIGN NUM_CONST:constVal
+    |
+    (ConstDeclChar) IDENTIFIER:constIdentifier OP_ASSIGN CHAR_CONST:constVal
+    |
+    (ConstDeclBool) IDENTIFIER:constIdentifier OP_ASSIGN BOOL_CONST:constVal
+    ;
+
+VarDeclList ::= (VarDeclBase) Type VarDeclCore VarDeclMore OP_SEMICOLON
+    |
+    (VarDeclError) error OP_SEMICOLON:line {: parser.report_error_on_curr_token("Variable declaration error"); :}
+    ;
+
+VarDeclMore ::= (VarDeclMultiple) VarDeclMore OP_COMMA VarDeclCore
+    |
+    (NoVarDecl) /* empty */
+    ;
+
+VarDeclCore ::= (VarDecl) IDENTIFIER:varName
+    |
+    (VarDeclArray) IDENTIFIER:varName OP_LEFT_SQUARE OP_RIGHT_SQUARE
+    |
+    (VarDeclCoreError) error {: parser.report_error_on_curr_token("Variable declaration error"); :}
+    ;
+
+LocalVarDeclList ::= (MethodVarDeclSingle) VarDeclList
+    |
+    (MethodVarDeclMultiple) LocalVarDeclList VarDeclList
+    ;
+
+VarDeclChoice ::= (VarDeclYes) LocalVarDeclList
+    |
+    (VarDeclNo) /* empty */
+    ;
+
+EnumDecl ::= (EnumDecl) ENUM EnumTypeDecl OP_LEFT_CURLY EnumDeclCore EnumDeclMore OP_RIGHT_CURLY;
+
+EnumTypeDecl ::= (EnumTypeDecl) IDENTIFIER:enumTypeName;
+
+EnumDeclMore ::= (EnumDeclMultiple) EnumDeclMore OP_COMMA EnumDeclCore
+    |
+    (NoEnumDeclMultiple) /* empty */
+    ;
+
+EnumDeclCore ::= (EnumDeclValAuto) IDENTIFIER:enumVal
+    |
+    (EnumDeclValAssigned) IDENTIFIER:enumVal OP_ASSIGN NUM_CONST:assignedVal
+    ;
+
+FormalParamsChoice ::= (HasFormalParams) FormalParams
+    |
+    (NoFormalParams) /* empty */
+    ;
+
+FormalParams ::= (FormalParamsFirst) FormalParam
+    |
+    (FormalParamsNext) FormalParams OP_COMMA FormalParam
+    ;
+
+FormalParam ::= (FormalParamSingle) Type IDENTIFIER:paramName
+    |
+    (FormalParamArray) Type IDENTIFIER:paramName OP_LEFT_SQUARE OP_RIGHT_SQUARE
+    |
+    (FormalParamError) error {: parser.report_error_on_err_token("Error in formal param declaration"); :}
+    ;
+
+MethodDeclList ::= (MethodList) MethodDeclList MethodDecl
+    |
+    (NoMethodList) /* empty */
+    ;
+
+MethodDecl ::= (MethodDecl) MethodType MethodName OP_LEFT_PAREN FormalParamsChoice OP_RIGHT_PAREN VarDeclChoice OP_LEFT_CURLY StatementList OP_RIGHT_CURLY;
+
+MethodName ::= (MethodName) IDENTIFIER:methodName;
+
+MethodType ::= (MethodTypeActual) Type
+    |
+    (MethodTypeVoid) VOID
+    ;
+
+InterfaceMethodList ::= (InterfaceMethodDeclList) InterfaceMethodList InterfaceMethodDecl
+    |
+    (NoInterfaceMethodList) /* empty */
+    ;
+
+InterfaceHeader ::= (InterfaceHeader) IDENTIFIER:interfaceName;
+
+InterfaceMethodName ::= (InterfaceMethodName) IDENTIFIER:methodName;
+
+InterfaceMethodDecl ::= (InterfaceMethodDecl) MethodType InterfaceMethodName OP_LEFT_PAREN FormalParamsChoice OP_RIGHT_PAREN OP_SEMICOLON;
+
+InterfaceDecl ::= (InterfaceDecl) INTERFACE InterfaceHeader OP_LEFT_CURLY InterfaceMethodList OP_RIGHT_CURLY;
+
+MethDeclChoice ::= (ClassMethodDecl) OP_LEFT_CURLY MethodDeclList OP_RIGHT_CURLY
+    |
+    (ClassNoMethodDecl) /* empty */
+    ;
+
+ClassDeclHeader ::= (ClassDeclHeader) IDENTIFIER:className;
+
+ClassDecl ::= (ClassDecl) CLASS ClassDeclHeader ClassExtendsChoice ClassImplementsChoice OP_LEFT_CURLY VarDeclChoice MethDeclChoice OP_RIGHT_CURLY;
+
+ClassExtendsChoice ::= (ClassExtends) EXTENDS Type
+    |
+    (NoClassExtends) /* empty */
+    |
+    (ClassExtendsError) error {: parser.report_error_on_err_token("Error in extends clause"); :}
+    ;
+
+ClassImplementsChoice ::= (ClassImplements) IMPLEMENTS Type ClassImplementsMultiple
+    |
+    (NoClassImplements) /* empty */
+    ;
+
+ClassImplementsMultiple ::= (ImplementsMultiple) ClassImplementsMultiple OP_COMMA Type
+    |
+    (NoImplementsMultiple) /* empty */
+    ;
+
+ActualParamsChoice ::= (HasActualParams) ActualParams
+    |
+    (NoActualParams) /* */
+    ;
+
+ActualParams ::= (ActualParamsSingle) Expr
+    |
+    (ActualParamsMultiple) ActualParams OP_COMMA Expr
+    ;
+
+Expr ::= (ExprTerm) Term
+    |
+    (ExprNegatedTerm) OP_MINUS Term
+    |
+    (ExprList) Expr Addop Term
+    ;
+
+Assignop ::= OP_ASSIGN;
+
+Term ::= (TermBase) Factor
+    |
+    (TermList) Term Mulop Factor
+    ;
+
+DesignatorBase ::= (DesignatorBase) Designator;
+
+ArrayLoadMarker ::= (ArrayLoadMarker) /* empty */;
+
+Designator ::= (DesignatorIdent) IDENTIFIER:designatorName
+    |
+    (DesignatorDot) Designator OP_DOT IDENTIFIER:designatorName
+    |
+    (DesignatorArray) Designator ArrayLoadMarker OP_LEFT_SQUARE Expr OP_RIGHT_SQUARE
+    ;
+
+Factor ::= (FactorNum) NUM_CONST:numberFactor
+    |
+    (FactorChar) CHAR_CONST:charFactor
+    |
+    (FactorBool) BOOL_CONST:boolFactor
+    |
+    (FactorAllocation) NEW Type
+    |
+    (FactorAllocationArray) NEW Type OP_LEFT_SQUARE Expr OP_RIGHT_SQUARE
+    |
+    (FactorGrouped) OP_LEFT_PAREN Expr OP_RIGHT_PAREN
+    |
+    (FactorDesignator) DesignatorBase
+    |
+    (FactorDesignatorCall) DesignatorBase OP_LEFT_PAREN ActualParamsChoice OP_RIGHT_PAREN
+    ;
+
+Relop ::= (RelopEquals) OP_EQUALS
+    |
+    (RelopNotEquals) OP_NOT_EQUALS
+    |
+    (RelopGreaterThan) OP_GREATER_THAN
+    |
+    (RelopGreaterEqual) OP_GREATER_EQUAL
+    |
+    (RelopLessThan) OP_LESS_THAN
+    |
+    (RelopLessEqual) OP_LESS_EQUAL
+    ;
+
+Addop ::= (AddopAdd) OP_PLUS
+    |
+    (AddopSub) OP_MINUS
+    ;
+
+Mulop ::= (MulopMul) OP_MUL
+    |
+    (MulopDiv) OP_DIV
+    |
+    (MulopMod) OP_MOD
+    ;
+
+Condition ::= (ConditionBase) CondTerm
+    |
+    (ConditionList) Condition OP_OR CondTerm
+    ;
+
+CondTerm ::= (CondTermBase) CondFact
+    |
+    (CondTermList) CondTerm OP_AND CondFact
+    ;
+
+CondFact ::= (CondFactBase) Expr
+    |
+    (CondFactRel) Expr Relop Expr
+    ;
+
+StatementList ::= (SingleStatement) StatementList Statement
+    |
+    (NoStatement) /* empty */
+    ;
+
+Statement ::= (BreakStatement) BREAK OP_SEMICOLON
+    |
+    (ContinueStatement) CONTINUE OP_SEMICOLON
+    |
+    (MultipleStatements) OP_LEFT_CURLY StatementList OP_RIGHT_CURLY
+    |
+    (ReturnStatementVoid) RETURN OP_SEMICOLON
+    |
+    (ReturnStatement) RETURN Expr OP_SEMICOLON
+    |
+    (PrintStatementOneArg) PRINT OP_LEFT_PAREN Expr OP_RIGHT_PAREN OP_SEMICOLON
+    |
+    (PrintStatementTwoArg) PRINT OP_LEFT_PAREN Expr OP_COMMA NUM_CONST:num OP_RIGHT_PAREN OP_SEMICOLON
+    |
+    (ConditionalStatement) CondStatement
+    |
+    (ReadStatement) READ OP_LEFT_PAREN DesignatorBase OP_RIGHT_PAREN OP_SEMICOLON
+    |
+    (DesignatorStatementBase) DesignatorStatement OP_SEMICOLON
+    |
+    (ForStatement) FOR OP_LEFT_PAREN ForStartMarker ForInitPart OP_SEMICOLON ForCondPart OP_SEMICOLON ForStepPart OP_RIGHT_PAREN ForStatementMarker Statement
+    ;
+
+DesignatorStatement ::= (DesignatorAssign) DesignatorBase Assignop Expr
+    |
+    (DesignatorCall) DesignatorBase OP_LEFT_PAREN ActualParamsChoice OP_RIGHT_PAREN
+    |
+    (DesignatorInc) DesignatorBase OP_INC
+    |
+    (DesignatorDec) DesignatorBase OP_DEC
+    |
+    (DesignatorError) error {: parser.report_error_on_err_token("Error in designator statement"); :}
+    ;
+
+IfStartMarker ::= (IfStartMarkerCond) Condition
+    |
+    (IfCondError) error {: parser.report_error_on_err_token("Error in if condition"); :}
+;
+
+IfElseMarker ::= (IfElseMarker) /* empty */;
+
+CondStatement ::= (IfStatement) IF OP_LEFT_PAREN IfStartMarker OP_RIGHT_PAREN Statement
+    |
+    (IfElseStatement) IF OP_LEFT_PAREN IfStartMarker OP_RIGHT_PAREN Statement ELSE IfElseMarker Statement
+    ;
+
+ForInitPart ::= (ForInit) DesignatorStatement
+    |
+    (NoForInit) /* empty */
+    ;
+
+ForCondPart ::= (ForCond) Condition
+    |
+    (NoForCond) /* empty */
+    ;
+
+ForStepPart ::= (ForStep) DesignatorStatement
+    |
+    (NoForStep) /* empty */
+    ;
+
+ForStatementMarker ::= (ForStatementMarker) /* empty */;
+
+ForStartMarker ::= (ForStartMarker) /* empty */;
